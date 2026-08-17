@@ -1,0 +1,6 @@
+BESS Validation Report
+----------------------
+Maximum SOC : 100.00
+Minimum SOC : 20.00
+Maximum Energy : 100.00
+Minimum Energy : 20.00
