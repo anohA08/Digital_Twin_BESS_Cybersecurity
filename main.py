@@ -81,6 +81,12 @@ print("Detector Statistics")
 
 print(simulation.detector.statistics())
 
+print(results[["Hour",
+               "SOC",
+               "Spoofed_SOC",
+               "Replay_SOC",
+               "Replay Attack"]])
+
 # ------------------------------------
 # Save Results
 # ------------------------------------
@@ -146,11 +152,5 @@ print("Energy Valid:", (results["Energy"].min() >= 0) and (results["Energy"].max
 
 
 
-from plots import (
-    plot_soc,
-    plot_energy,
-    plot_solar_demand,
-    plot_battery_power,
-    plot_sync_error
-)
+
 plot_sync_error(results)

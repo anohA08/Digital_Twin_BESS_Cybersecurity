@@ -6,6 +6,7 @@ from sensor import Sensor
 from delay import DelayBuffer
 from attack import SensorSpoofingAttack
 from detector import AttackDetector
+from replay_attack import ReplayAttack
 
 
 class Simulation:
@@ -20,6 +21,10 @@ class Simulation:
         self.attacker = SensorSpoofingAttack(attack_probability=0.20,
     spoof_amount=20)
         self.detector = AttackDetector(threshold=15)
+        self.replay_attack = ReplayAttack(
+    probability=0.15,
+    replay_length=5
+)
 
     def run(self):
         for _, row in self.data.iterrows():
@@ -45,27 +50,25 @@ class Simulation:
                 battery_power = 0
 
             #update the digital twin and calculate the synchronization error
+
             true_soc = self.battery.get_soc()
 
             measured_soc = self.sensor.measure_soc(true_soc)
 
-            spoofed_soc, attack_active = self.attacker.attack(measured_soc)
+            spoofed_soc, spoof_attack = self.attacker.attack(measured_soc)
 
-            # ---------- Attack Detection ----------
+            replayed_soc, replay_attack = self.replay_attack.attack(spoofed_soc)
 
-            self.detector.detect(spoofed_soc)
-
-            attack_detected = self.detector.attack_detected
-
-            # ---------- Communication Delay ----------
-
-            delayed_soc = self.delay.update(spoofed_soc)
-
-            # ---------- Digital Twin ----------
+            delayed_soc = self.delay.update(replayed_soc)
 
             self.digital_twin.update(delayed_soc)
 
             sync_error = self.digital_twin.calculate_error(self.battery)
+
+            
+            self.detector.detect(sync_error)
+
+            attack_detected = self.detector.attack_detected
 
             
 
@@ -80,9 +83,11 @@ class Simulation:
                     "SOC": self.battery.get_soc(),
                     "Sync_Error": sync_error,
                     "Delay Steps": self.delay.delay_steps,
-                    "Attack": attack_active,
+                    "Attack": spoof_attack,
                     "Attack_Detected": attack_detected,
                     "Spoofed_SOC": spoofed_soc,
+                    "Replay Attack": replay_attack,
+                    "Replay_SOC": replayed_soc,
                 }
             )
 
